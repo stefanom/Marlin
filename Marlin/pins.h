@@ -437,7 +437,7 @@
 
 
   #ifdef NUM_SERVOS
-    #define SERVO0_PIN         11
+    #define SERVO0_PIN         7
 
     #if NUM_SERVOS > 1
       #define SERVO1_PIN         6

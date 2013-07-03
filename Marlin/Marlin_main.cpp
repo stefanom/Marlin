@@ -78,6 +78,9 @@
 // M114 - Display current position
 
 //Custom M Codes
+// M3   - Turn spindle clockwise (M3 S<speed>)
+// M4   - Turn spindle counter-clockwise (M4 S<speed>)
+// M5   - Stop spindle
 // M17  - Enable/Power all stepper motors
 // M18  - Disable all stepper motors; same as M84
 // M20  - List SD card
@@ -182,8 +185,8 @@ int fanSpeed=0;
   int servo_endstop_angles[] = SERVO_ENDSTOP_ANGLES;
 #endif
 #ifdef BARICUDA
-int ValvePressure=0;
-int EtoPPressure=0;
+  int ValvePressure=0;
+  int EtoPPressure=0;
 #endif
 
 #ifdef FWRETRACT
@@ -370,6 +373,18 @@ void servo_init()
   #endif
 }
 
+void cnc_init()
+{
+  #if defined(SPINDLE_ARM_ESC) && (SPINDLE_SERVO < NUM_SERVOS)
+    #if defined(SPINDLE_ZERO_VALUE) && (SPINDLE_ZERO_VALUE > -1)
+      servos[SPINDLE_SERVO].write(SPINDLE_ZERO_VALUE);
+      #if defined(SPINDLE_ARM_DELAY) && (SPINDLE_ARM_DELAY > -1)
+        delay(SPINDLE_ARM_DELAY);
+      #endif
+    #endif
+  #endif
+}
+
 void setup()
 {
   setup_killpin();
@@ -419,12 +434,12 @@ void setup()
   st_init();    // Initialize stepper, this enables interrupts!
   setup_photpin();
   servo_init();
-
+  cnc_init();
   lcd_init();
-  
+
   #if defined(CONTROLLERFAN_PIN) && CONTROLLERFAN_PIN > -1
     SET_OUTPUT(CONTROLLERFAN_PIN); //Set pin used for driver cooling fan
-  #endif 
+  #endif
 }
 
 
@@ -952,6 +967,46 @@ void process_commands()
     }
     break;
 #endif
+
+#ifdef SPINDLE_SUPPORT
+    case 3: // M3 - Turn spindle clockwise
+    case 4: // M4 - Turn spindle counter-clockwise
+    // TODO: direction of rotation is currently not supported
+      {
+        int servo_index = SPINDLE_SERVO;
+        if ((servo_index >= 0) && (servo_index < NUM_SERVOS)) {
+          int servo_position = 0;
+          if (code_seen('S')) {
+            servo_position = code_value();
+            servos[servo_index].write(SPINDLE_ZERO_VALUE + servo_position);
+          } else {
+            SERIAL_ECHO_START;
+            SERIAL_ECHO("Must specify a speed with this code");
+          }
+        } else {
+          SERIAL_ECHO_START;
+          SERIAL_ECHO("The configured servo for this spindle '");
+          SERIAL_ECHO(servo_index);
+          SERIAL_ECHOLN("' is out of range");
+        }
+      }
+      break;
+    case 5: // M5 - Stop spindle rotation
+      {
+        int servo_index = SPINDLE_SERVO;
+        if ((servo_index >= 0) && (servo_index < NUM_SERVOS)) {
+          servos[servo_index].write(SPINDLE_ZERO_VALUE);
+        } else {
+          SERIAL_ECHO_START;
+          SERIAL_ECHO("The configured servo for this spindle '");
+          SERIAL_ECHO(servo_index);
+          SERIAL_ECHOLN("' is out of range");
+        }
+      }
+      break;
+#endif // SPINDLE_SUPPORT
+
+
     case 17:
         LCD_MESSAGEPGM(MSG_NO_MOVE);
         enable_x();
