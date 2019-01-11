@@ -40,6 +40,11 @@
 #include "pins_RAMPS_13.h"
 
 //
+// Fans
+//
+#define FAN_PIN           5
+
+//
 // Servos
 //
 #undef SERVO0_PIN
