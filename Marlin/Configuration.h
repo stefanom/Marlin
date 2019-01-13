@@ -792,7 +792,7 @@
 #define Z_PROBE_OFFSET_FROM_EXTRUDER 1.3   // Z offset: -below +above  [the nozzle]
 
 // Certain types of probes need to stay away from edges
-#define MIN_PROBE_EDGE 0
+#define MIN_PROBE_EDGE 10
 
 // X and Y axis travel speed (mm/s) between probes
 #define XY_PROBE_SPEED HOMING_FEEDRATE_XY
