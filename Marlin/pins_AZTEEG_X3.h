@@ -42,7 +42,7 @@
 //
 // Fans
 //
-#define FAN_PIN           5
+#define FAN_PIN           6   // 5 is fried! :-(
 
 //
 // Servos
